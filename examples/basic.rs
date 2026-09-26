@@ -1,4 +1,4 @@
-use jev_rs::{Choice, EvaluateRequest, Noul, Score, State, TypeSafe};
+use jev_rust::{Choice, EvaluateRequest, Noul, Score, State, TypeSafe};
 use serde_json::json;
 
 #[tokio::main]
