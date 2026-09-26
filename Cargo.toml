@@ -2,6 +2,8 @@
 name = "jev-rust"
 version = "0.1.0"
 edition = "2024"
+description = "Typesafe AI API wrapper for Rust"
+license = "MIT"
 
 [dependencies]
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
