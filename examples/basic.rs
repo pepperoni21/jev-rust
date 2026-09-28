@@ -1,4 +1,4 @@
-use jev_rust::{Choice, EvaluateRequest, Noul, Score, State, TypeSafe};
+use jev_rust::{Answer, Choice, EvaluateRequest, EvaluateResponse, Noul, Score, State, TypeSafe};
 use serde_json::json;
 
 #[tokio::main]
@@ -40,10 +40,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (label, request) in [("text", text), ("object", object), ("messages", messages)] {
         let response = typesafe.evaluate(request).await?;
-        println!("--- {label} ---");
-        println!("model: {}", response.model);
-        println!("answers: {:#?}", response.answers);
+        print_answers(label, &response);
     }
 
     Ok(())
+}
+
+/// Print an [`EvaluateResponse`] in a human-readable form.
+fn print_answers(label: &str, response: &EvaluateResponse) {
+    println!("=== {label} ===");
+    println!("model: {}", response.model);
+    println!(
+        "tokens: {} in / {} out",
+        response.usage.input_tokens, response.usage.output_tokens
+    );
+
+    for (id, answer) in response.answers.iter() {
+        match answer {
+            Answer::Noul { noul } => {
+                println!("  {id}: {:.1}% yes", noul * 100.0);
+            }
+            Answer::Choice {
+                choice,
+                probabilities,
+                confidence,
+            } => {
+                println!("  {id}: {choice} ({:.1}% confident)", confidence * 100.0);
+                for (option, probability) in probabilities {
+                    println!("      - {option}: {:.1}%", probability * 100.0);
+                }
+            }
+            Answer::Score {
+                score,
+                legend,
+                probabilities,
+                confidence,
+            } => {
+                println!("  {id}: {score:.2} ({:.1}% confident)", confidence * 100.0);
+                for (level, probability) in probabilities {
+                    let description = legend.get(level).map(String::as_str).unwrap_or(level);
+                    println!("      - {description}: {:.1}%", probability * 100.0);
+                }
+            }
+        }
+    }
+    println!();
 }
